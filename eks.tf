@@ -1,0 +1,48 @@
+module "eks" {
+  source  = "terraform-aws-modules/eks/aws"
+  version = "~> 21.0"
+  name               = "platform-eng-cluster"
+  kubernetes_version = "1.33"
+  enabled_log_types = ["audit", "api", "authenticator"]
+  create_cloudwatch_log_group = true
+  endpoint_public_access = true
+  enable_cluster_creator_admin_permissions = true
+
+  addons = {
+  vpc-cni = {}
+  coredns = {}
+  kube-proxy = {}
+}
+
+  compute_config = {
+    enabled = false
+  }
+
+  encryption_config = {
+    resources = ["secrets"]
+  }
+
+  vpc_id     = module.vpc.vpc_id
+  subnet_ids = module.vpc.private_subnets
+
+  tags = {
+    Environment = "prod"
+  }
+
+  eks_managed_node_groups = {
+    node_group1 = {
+      ami_type       = "AL2023_x86_64_STANDARD"
+      instance_types = ["t3.small"]
+      kubernetes_version = "1.33"
+
+      min_size     = 1
+      max_size     = 2
+      desired_size = 1
+      metadata_options = {
+        http_endpoint               = "enabled"
+        http_tokens                 = "required"
+        http_put_response_hop_limit = 2
+      }
+    }
+  }
+}
