@@ -24,10 +24,13 @@ module "eks" {
   enable_cluster_creator_admin_permissions = true
 
   addons = {
-  vpc-cni = {}
-  coredns = {}
-  kube-proxy = {}
-}
+    vpc-cni    = {}
+    coredns    = {}
+    kube-proxy = {}
+    aws-ebs-csi-driver = {
+      service_account_role_arn = module.ebs_csi_driver_irsa.iam_role_arn
+    }
+  }
 
   compute_config = {
     enabled = false
@@ -51,8 +54,8 @@ module "eks" {
       kubernetes_version = "1.33"
 
       min_size     = 1
-      max_size     = 2
-      desired_size = 1
+      max_size     = 3
+      desired_size = 3
       metadata_options = {
         http_endpoint               = "enabled"
         http_tokens                 = "required"
